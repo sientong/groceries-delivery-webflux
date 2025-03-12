@@ -2,11 +2,11 @@ spring:
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/groceries_db
     username: postgres
-    password: postgres
+    password: 099052
   flyway:
     url: jdbc:postgresql://localhost:5432/groceries_db
     user: postgres
-    password: postgres
+    password: 099052
     locations: classpath:db/migration
     baseline-on-migrate: true
   sql:

@@ -1,0 +1,61 @@
+# Build output
+target/
+!target/*.jar
+build/
+out/
+bin/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+*.jar
+*.war
+*.ear
+
+# Environment files
+.env*
+!.env.example
+application-*.yml
+!application-prod.yml
+!application-dev.yml
+
+# Version control
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.settings/
+.project
+.classpath
+.factorypath
+
+# Testing
+**/test/
+**/tests/
+**/testdata/
+**/mock/
+**/*Test.java
+**/*Tests.java
+**/test-*.xml
+
+# Logs
+logs/
+*.log
+
+# Misc
+.DS_Store
+README.md
+LICENSE
+*.md
+.editorconfig
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

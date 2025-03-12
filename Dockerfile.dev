@@ -1,0 +1,23 @@
+# Development stage with Maven and JDK
+FROM maven:3.8.7-eclipse-temurin-17 AS build
+
+# Set working directory
+WORKDIR /app
+
+# Install development tools
+RUN apt-get update && apt-get install -y curl
+
+# Copy POM and download dependencies
+COPY pom.xml ./
+RUN mvn dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Expose application and debug ports
+EXPOSE 8080 5005
+
+# Start Spring Boot application with remote debugging enabled and hot reload
+CMD ["mvn", "spring-boot:run", \
+     "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'", \
+     "-Dspring-boot.run.profiles=dev"]

@@ -1,0 +1,25 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://postgres-dev:5432/groceries_dev
+    username: postgres
+    password: 099052
+  data:
+    redis:
+      host: redis-dev
+      port: 6379
+  sql:
+    init:
+      mode: always
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://postgres-dev:5432/groceries_dev
+    user: postgres
+    password: 099052
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    root: INFO
+    org.springframework.r2dbc: DEBUG
+    org.flywaydb: DEBUG

@@ -1,0 +1,32 @@
+{
+    "info": {
+        "name": "Groceries Delivery Management API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get All Groceries",
+            "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/groceries"
+            }
+        },
+        {
+            "name": "Create Grocery",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Apple\",\n    \"price\": 3.0\n}"
+                },
+                "url": "{{baseUrl}}/groceries"
+            }
+        }
+    ]
+}

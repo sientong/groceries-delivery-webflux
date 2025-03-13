@@ -6,13 +6,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class JwtService {
@@ -23,7 +23,7 @@ public class JwtService {
     private long jwtExpiration;
 
     private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -43,18 +43,13 @@ public class JwtService {
                 .compact();
     }
 
-    public Mono<String> validateTokenAndGetUsername(String token) {
-        return Mono.fromCallable(() -> {
-            try {
-                Claims claims = extractAllClaims(token);
-                if (claims.getExpiration().before(new Date())) {
-                    return null;
-                }
-                return claims.getSubject();
-            } catch (Exception e) {
-                return null;
-            }
-        });
+    public String validateTokenAndGetUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
@@ -63,10 +58,5 @@ public class JwtService {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
     }
 }

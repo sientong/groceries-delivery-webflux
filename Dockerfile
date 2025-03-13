@@ -25,12 +25,14 @@ WORKDIR /app
 # Copy built jar
 COPY --from=build /app/target/*.jar app.jar
 
-# Environment variables
-ENV SPRING_PROFILES_ACTIVE=prod
+# Environment variables with development defaults
+ENV SPRING_PROFILES_ACTIVE=dev
 ENV SERVER_PORT=8080
 ENV JAVA_OPTS="-Xms512m -Xmx1024m"
 
-# Expose port
+# Debug port (for development)
+EXPOSE 5005
+# Application port
 EXPOSE 8080
 
 # Start the application

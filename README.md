@@ -2,6 +2,80 @@
 
 A reactive Spring Boot application for managing groceries delivery, featuring real-time order tracking, inventory management, and secure payment processing. Built following Clean Architecture and Domain-Driven Design principles.
 
+## Development Environment
+
+### Prerequisites
+
+- Java 17 or higher
+- Docker and Docker Compose
+- Maven 3.6 or higher
+
+### Environment Setup
+
+The application uses environment-specific configurations:
+
+1. **Development Environment** (`application-dev.properties`)
+   - PostgreSQL on port 5433
+   - Redis on port 6380
+   - Debug port 5005
+   - Detailed logging enabled
+   - Management endpoints exposed
+   - Default JWT configuration
+
+2. **Production Environment** (`application-prod.properties`)
+   - Requires environment variables for sensitive data
+   - SSL enabled by default
+   - Limited management endpoints
+   - Restricted logging
+   - Secure JWT configuration
+
+### Running with Docker (Development)
+
+1. **Start the development environment**
+   ```bash
+   docker compose -f docker-compose.dev.yml up
+   ```
+
+   This will start:
+   - Backend service (port 8080, debug port 5005)
+   - PostgreSQL (port 5433)
+   - Redis (port 6380)
+   - Adminer (port 8081)
+   - Redis Commander (port 8082)
+   - Prometheus (port 9091)
+   - Grafana (port 3001)
+
+2. **Access development tools**
+   - Backend API: http://localhost:8080
+   - Adminer (DB management): http://localhost:8081
+   - Redis Commander: http://localhost:8082
+   - Grafana: http://localhost:3001 (admin/admin)
+
+### Environment Variables
+
+#### Development Defaults
+```properties
+SPRING_PROFILES_ACTIVE=dev
+SPRING_R2DBC_URL=r2dbc:postgresql://postgres-dev:5432/groceries_dev
+SPRING_R2DBC_USERNAME=postgres
+SPRING_R2DBC_PASSWORD=postgres
+SPRING_REDIS_HOST=redis-dev
+SPRING_REDIS_PORT=6380
+```
+
+#### Production Requirements
+```properties
+SPRING_PROFILES_ACTIVE=prod
+SPRING_R2DBC_URL=<required>
+SPRING_R2DBC_USERNAME=<required>
+SPRING_R2DBC_PASSWORD=<required>
+SPRING_REDIS_HOST=<required>
+SPRING_REDIS_PORT=<required>
+JWT_SECRET=<required>
+SERVER_SSL_KEYSTORE=<required>
+SERVER_SSL_KEYSTORE_PASSWORD=<required>
+```
+
 ## Architecture
 
 ### Clean Architecture Layers
@@ -65,42 +139,42 @@ A reactive Spring Boot application for managing groceries delivery, featuring re
 - **Documentation**: OpenAPI/Swagger
 - **Build Tool**: Maven
 
-## Prerequisites
+## Local Development
 
-- Java 17 or higher
-- PostgreSQL 12 or higher
-- Maven 3.6 or higher
+### Running without Docker
 
-## Getting Started
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/groceries-delivery-system.git
-   cd groceries-delivery-system/backend
+1. **Configure local PostgreSQL**
+   ```properties
+   spring.r2dbc.url=r2dbc:postgresql://localhost:5432/groceries_db
+   spring.r2dbc.username=postgres
+   spring.r2dbc.password=your_password
    ```
 
-2. **Configure the database**
-   
-   Update `application.yml` with your PostgreSQL credentials:
-   ```yaml
-   spring:
-     r2dbc:
-       url: r2dbc:postgresql://localhost:5432/groceries_db
-       username: your_username
-       password: your_password
-   ```
-
-3. **Build the project**
+2. **Build and run**
    ```bash
    mvn clean install
+   mvn spring-boot:run -Dspring-boot.run.profiles=dev
    ```
 
-4. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
+### Test Accounts
 
-   The application will start on `http://localhost:8080`
+For development and testing:
+
+1. **Admin Account**
+   - Email: admin@groceries.com
+   - Password: password123
+   - Role: ADMIN
+
+2. **Customer Accounts**
+   - John Doe (john@example.com)
+   - Jane Smith (jane@example.com)
+   - Password: password123
+   - Role: CUSTOMER
+
+3. **Driver Account**
+   - Mike Driver (driver1@groceries.com)
+   - Password: password123
+   - Role: DRIVER
 
 ## API Documentation
 
@@ -298,6 +372,104 @@ All DTOs include comprehensive OpenAPI documentation with:
 - Required field markers
 - Response schemas
 - Error scenarios
+
+## Monitoring & Metrics
+
+### Actuator Endpoints
+
+The application exposes Spring Boot Actuator endpoints for monitoring:
+
+- Health check: `/actuator/health`
+- Metrics: `/actuator/metrics`
+- Prometheus: `/actuator/prometheus`
+- Info: `/actuator/info`
+
+Secured with basic authentication:
+```
+Username: actuator
+Password: actuator123
+```
+
+### Prometheus Metrics
+
+Key JVM and application metrics:
+
+1. Memory Metrics:
+```promql
+# Heap Memory Usage
+jvm_memory_used_bytes{area="heap"}
+
+# Memory Usage Percentage
+(jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) * 100
+```
+
+2. HTTP Metrics:
+```promql
+# Request Rate
+rate(http_server_requests_seconds_count[5m])
+
+# Average Response Time
+rate(http_server_requests_seconds_sum[5m]) / rate(http_server_requests_seconds_count[5m])
+
+# Error Rate
+(sum(rate(http_server_requests_seconds_count{status="5xx"}[5m])) / sum(rate(http_server_requests_seconds_count[5m]))) * 100
+```
+
+3. Database Metrics:
+```promql
+# Active Connections
+r2dbc_pool_acquired_connections
+
+# Connection Acquisition Time
+r2dbc_pool_pending_time_seconds
+```
+
+4. Business Metrics:
+```promql
+# Active Orders
+order_active_total
+
+# Order Processing Time
+order_processing_time_seconds
+```
+
+### Grafana Dashboards
+
+Pre-configured dashboards available in `/grafana/dashboards/`:
+
+1. Application Overview:
+   - System health status
+   - Key performance indicators
+   - Error rates and latencies
+
+2. JVM Metrics:
+   - Memory usage
+   - Garbage collection
+   - Thread states
+   - CPU usage
+
+3. HTTP Metrics:
+   - Request rates
+   - Response times
+   - Status codes
+   - Endpoint performance
+
+4. Business Metrics:
+   - Order processing
+   - User activities
+   - Inventory status
+
+### Development Tools
+
+1. Remote Debugging:
+   - Port: 5005
+   - Already configured in Dockerfile.dev
+   - Connect using your IDE's remote debugger
+
+2. Hot Reload:
+   - Automatic reloading of changed classes
+   - Preserves application state
+   - Speeds up development cycle
 
 ## Domain Model
 

@@ -1,6 +1,8 @@
 package com.sientong.groceries.domain.cart;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.sientong.groceries.domain.product.Money;
@@ -17,14 +19,24 @@ import lombok.NoArgsConstructor;
 public class Cart {
     private String id;
     private String userId;
-    private List<CartItem> items;
+    @Builder.Default
+    private List<CartItem> items = new ArrayList<>();
     private Money total;
-    private String couponCode;
-    private Money discount;
     private LocalDateTime updatedAt;
 
     public void addItem(CartItem item) {
         items.add(item);
+        recalculateTotal();
+    }
+
+    public void updateItem(String itemId, CartItem updatedItem) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getId().equals(itemId)) {
+                CartItem existingItem = items.get(i);
+                existingItem.setQuantity(updatedItem.getQuantity());
+                break;
+            }
+        }
         recalculateTotal();
     }
 
@@ -33,32 +45,20 @@ public class Cart {
         recalculateTotal();
     }
 
-    public void updateItemQuantity(String itemId, int quantity) {
-        items.stream()
-            .filter(item -> item.getId().equals(itemId))
-            .findFirst()
-            .ifPresent(item -> {
-                item.setQuantity(quantity);
-                recalculateTotal();
-            });
-    }
-
     public void clear() {
         items.clear();
-        couponCode = null;
-        discount = Money.ZERO;
         recalculateTotal();
     }
 
     private void recalculateTotal() {
-        total = items.stream()
-            .<Money>map(item -> item.getPrice().multiply(item.getQuantity()))
-            .reduce(Money.ZERO, Money::add);
-
-        if (discount != null) {
-            total = total.subtract(discount);
-        }
-
+        BigDecimal subtotal = getSubtotal();
+        total = Money.of(subtotal, items.isEmpty() ? "USD" : items.get(0).getCurrency());
         updatedAt = LocalDateTime.now();
+    }
+
+    public BigDecimal getSubtotal() {
+        return items.stream()
+                .map(CartItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

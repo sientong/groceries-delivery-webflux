@@ -1,15 +1,17 @@
 package com.sientong.groceries.infrastructure.persistence.adapter;
 
+import org.springframework.stereotype.Component;
+
+import com.sientong.groceries.domain.order.DeliveryInfo;
 import com.sientong.groceries.domain.order.Order;
 import com.sientong.groceries.domain.order.OrderRepository;
 import com.sientong.groceries.domain.order.OrderStatus;
-import com.sientong.groceries.domain.order.DeliveryInfo;
 import com.sientong.groceries.infrastructure.persistence.entity.OrderEntity;
 import com.sientong.groceries.infrastructure.persistence.entity.OrderItemEntity;
-import com.sientong.groceries.infrastructure.persistence.repository.ReactiveOrderRepository;
 import com.sientong.groceries.infrastructure.persistence.repository.ReactiveOrderItemRepository;
+import com.sientong.groceries.infrastructure.persistence.repository.ReactiveOrderRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -79,6 +81,17 @@ public class OrderRepositoryAdapter implements OrderRepository {
     @Override
     public Flux<Order> findByStatus(OrderStatus status) {
         return orderRepository.findByStatus(status)
+                .flatMap(order -> orderItemRepository.findByOrderId(order.getId())
+                        .collectList()
+                        .map(items -> {
+                            order.setItems(items);
+                            return order.toDomain();
+                        }));
+    }
+
+    @Override
+    public Flux<Order> findAll() {
+        return orderRepository.findAll()
                 .flatMap(order -> orderItemRepository.findByOrderId(order.getId())
                         .collectList()
                         .map(items -> {

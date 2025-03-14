@@ -1,9 +1,11 @@
 package com.sientong.groceries.domain.order;
 
+import org.springframework.stereotype.Service;
+
 import com.sientong.groceries.domain.notification.NotificationService;
 import com.sientong.groceries.domain.notification.NotificationType;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -146,5 +148,15 @@ public class OrderServiceImpl implements OrderService {
                                     cancelledOrder.getId()
                             ).thenReturn(cancelledOrder));
                 });
+    }
+
+    @Override
+    public Mono<Order> assignDriver(String orderId, String driverId) {
+        return Mono.error(() -> new IllegalArgumentException("Not implemented"));
+    }   
+
+    @Override
+    public Flux<Order> getOrders() {
+        return orderRepository.findAll();
     }
 }

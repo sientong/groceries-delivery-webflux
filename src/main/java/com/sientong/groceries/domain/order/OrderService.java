@@ -18,4 +18,8 @@ public interface OrderService {
     Flux<Order> getOrdersByStatus(OrderStatus status);
     
     Mono<Order> cancelOrder(String orderId);
+    
+    Mono<Order> assignDriver(String orderId, String driverId);
+    
+    Flux<Order> getOrders();
 }

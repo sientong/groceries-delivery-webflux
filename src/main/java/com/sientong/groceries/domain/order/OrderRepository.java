@@ -10,4 +10,5 @@ public interface OrderRepository {
     Mono<Order> updateStatus(String id, OrderStatus status);
     Mono<Order> updateDeliveryInfo(String id, DeliveryInfo deliveryInfo);
     Flux<Order> findByStatus(OrderStatus status);
+    Flux<Order> findAll();
 }

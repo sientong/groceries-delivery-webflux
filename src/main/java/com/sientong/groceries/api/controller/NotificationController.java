@@ -1,7 +1,17 @@
 package com.sientong.groceries.api.controller;
 
-import com.sientong.groceries.domain.notification.Notification;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.sientong.groceries.api.response.NotificationResponse;
 import com.sientong.groceries.domain.notification.NotificationService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,10 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -34,10 +40,11 @@ public class NotificationController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
-    public Flux<Notification> getUserNotifications(
+    public Flux<NotificationResponse> getUserNotifications(
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return notificationService.getUserNotifications(userDetails.getUsername());
+        return notificationService.getUserNotifications(userDetails.getUsername())
+                .map(NotificationResponse::fromDomain);
     }
 
     @Operation(
@@ -50,11 +57,12 @@ public class NotificationController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping(path = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Notification> streamUserNotifications(
+    public Flux<NotificationResponse> streamUserNotifications(
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails
     ) {
         return notificationService.getUserNotifications(userDetails.getUsername())
-                .mergeWith(notificationService.getUserNotificationStream(userDetails.getUsername()));
+                .mergeWith(notificationService.getUserNotificationStream(userDetails.getUsername()))
+                .map(NotificationResponse::fromDomain);
     }
 
     @Operation(
@@ -67,11 +75,12 @@ public class NotificationController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/unread")
-    public Flux<Notification> getUnreadNotifications(
+    public Flux<NotificationResponse> getUnreadNotifications(
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails
     ) {
         return notificationService.getUserNotifications(userDetails.getUsername())
-                .filter(notification -> !notification.isRead());
+                .filter(notification -> !notification.isRead())
+                .map(NotificationResponse::fromDomain);
     }
 
     @Operation(
@@ -101,10 +110,11 @@ public class NotificationController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PatchMapping("/{notificationId}/read")
-    public Mono<Notification> markNotificationAsRead(
+    public Mono<NotificationResponse> markNotificationAsRead(
         @Parameter(description = "Notification ID", required = true) @PathVariable String notificationId,
         @Parameter(hidden = true) @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return notificationService.markNotificationAsRead(notificationId);
+        return notificationService.markNotificationAsRead(notificationId)
+                .map(NotificationResponse::fromDomain);
     }
 }

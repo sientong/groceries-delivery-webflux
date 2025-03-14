@@ -25,6 +25,7 @@ logging:
   level:
     root: INFO
     org.springframework.r2dbc: INFO
+    com.sientong.groceries: INFO
     org.flywaydb: INFO
     org.springframework.security: INFO
     org.springframework.actuator: INFO

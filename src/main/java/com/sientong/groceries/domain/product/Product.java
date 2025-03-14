@@ -3,6 +3,8 @@ package com.sientong.groceries.domain.product;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class Product {
@@ -10,10 +12,13 @@ public class Product {
     private final String name;
     private final String description;
     private final Money price;
-    private final ProductCategory category;
+    private final Category category;
     private Quantity quantity;
+    private final String imageUrl;
+    private final LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public Product(String id, String name, String description, Money price, ProductCategory category, Quantity quantity) {
+    public Product(String id, String name, String description, Money price, Category category, Quantity quantity, String imageUrl, LocalDateTime createdAt, LocalDateTime updatedAt) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Product name cannot be null or empty");
         }
@@ -30,6 +35,9 @@ public class Product {
         this.price = price;
         this.category = category;
         this.quantity = quantity != null ? quantity : Quantity.of(0);
+        this.imageUrl = imageUrl;
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
 
     public void updateStock(Quantity delta) {
@@ -42,5 +50,6 @@ public class Product {
             throw new IllegalArgumentException("Cannot reduce stock below zero");
         }
         this.quantity = Quantity.of(newQuantity);
+        this.updatedAt = LocalDateTime.now();
     }
 }

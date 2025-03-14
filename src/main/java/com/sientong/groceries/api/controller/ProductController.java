@@ -13,10 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sientong.groceries.api.request.ProductRequest;
 import com.sientong.groceries.api.request.StockUpdateRequest;
+import com.sientong.groceries.api.response.ProductResponse;
 import com.sientong.groceries.domain.product.Product;
-import com.sientong.groceries.domain.product.ProductCategory;
 import com.sientong.groceries.domain.product.ProductService;
+import com.sientong.groceries.domain.product.Quantity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,8 +47,9 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
-    public Flux<Product> getAllProducts() {
-        return productService.findAll();
+    public Flux<ProductResponse> getAllProducts() {
+        return productService.findAll()
+                .map(ProductResponse::fromDomain);
     }
 
     @Operation(
@@ -59,11 +62,12 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{id}")
-    public Mono<Product> getProductById(
+    public Mono<ProductResponse> getProductById(
         @Parameter(description = "Product ID", required = true)
         @PathVariable String id
     ) {
-        return productService.findById(id);
+        return productService.findById(id)
+                .map(ProductResponse::fromDomain);
     }
 
     @Operation(
@@ -74,12 +78,13 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @GetMapping("/category/{category}")
-    public Flux<Product> getProductsByCategory(
-        @Parameter(description = "Product category", required = true)
-        @PathVariable ProductCategory category
+    @GetMapping("/category/{categoryId}")
+    public Flux<ProductResponse> getProductsByCategory(
+        @Parameter(description = "Product category ID", required = true)
+        @PathVariable String categoryId
     ) {
-        return productService.findByCategory(category);
+        return productService.findByCategory(categoryId)
+                .map(ProductResponse::fromDomain);
     }
 
     @Operation(
@@ -96,11 +101,13 @@ public class ProductController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('SELLER')")
-    public Mono<Product> createProduct(
+    public Mono<ProductResponse> createProduct(
         @Parameter(description = "Product to create", required = true)
-        @Valid @RequestBody Product product
+        @Valid @RequestBody ProductRequest request
     ) {
-        return productService.createProduct(product);
+        Product product = request.toDomain();
+        return productService.createProduct(product)
+                .map(ProductResponse::fromDomain);
     }
 
     @Operation(
@@ -117,13 +124,15 @@ public class ProductController {
     @SecurityRequirement(name = "Bearer Authentication")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SELLER')")
-    public Mono<Product> updateProduct(
+    public Mono<ProductResponse> updateProduct(
         @Parameter(description = "Product ID", required = true)
         @PathVariable String id,
         @Parameter(description = "Updated product details", required = true)
-        @Valid @RequestBody Product product
+        @Valid @RequestBody ProductRequest request
     ) {
-        return productService.updateProduct(id, product);
+        Product product = request.toDomain();
+        return productService.updateProduct(id, product)
+                .map(ProductResponse::fromDomain);
     }
 
     @Operation(
@@ -161,12 +170,13 @@ public class ProductController {
     @SecurityRequirement(name = "Bearer Authentication")
     @PatchMapping("/{id}/stock")
     @PreAuthorize("hasRole('SELLER')")
-    public Mono<Product> updateStock(
+    public Mono<ProductResponse> updateStock(
         @Parameter(description = "Product ID", required = true)
         @PathVariable String id,
         @Parameter(description = "Stock update request", required = true)
         @Valid @RequestBody StockUpdateRequest request
     ) {
-        return productService.updateStock(id, request.getQuantityDelta());
+        return productService.updateStock(id, Quantity.of(request.getQuantity()))
+                .map(ProductResponse::fromDomain);
     }
 }

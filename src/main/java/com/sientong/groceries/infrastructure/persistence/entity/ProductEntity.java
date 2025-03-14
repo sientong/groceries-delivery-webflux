@@ -1,18 +1,21 @@
 package com.sientong.groceries.infrastructure.persistence.entity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+import com.sientong.groceries.domain.product.Category;
 import com.sientong.groceries.domain.product.Money;
 import com.sientong.groceries.domain.product.Product;
-import com.sientong.groceries.domain.product.ProductCategory;
 import com.sientong.groceries.domain.product.Quantity;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -24,20 +27,32 @@ public class ProductEntity {
     private String id;
     private String name;
     private String description;
+    @Column("category_id")
+    private String categoryId;
+    @Column("category_name")
+    private String categoryName;
     private BigDecimal price;
-    private ProductCategory category;
-    private Integer quantity;
+    private String currency;
+    private int quantity;
+    private String unit;
+    @Column("image_url")
+    private String imageUrl;
+    @Column("created_at")
     private LocalDateTime createdAt;
+    @Column("updated_at")
     private LocalDateTime updatedAt;
 
     public Product toDomain() {
         return new Product(
-            id,
-            name,
-            description,
-            Money.of(price),
-            category,
-            Quantity.of(quantity)
+                id,
+                name,
+                description,
+                Money.of(price, currency),
+                Category.of(categoryId, categoryName),
+                Quantity.of(quantity, unit),
+                imageUrl,
+                createdAt,
+                updatedAt
         );
     }
 
@@ -46,11 +61,15 @@ public class ProductEntity {
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
+                .categoryId(product.getCategory().getId())
+                .categoryName(product.getCategory().getName())
                 .price(product.getPrice().getAmount())
-                .category(product.getCategory())
+                .currency(product.getPrice().getCurrency())
                 .quantity(product.getQuantity().getValue())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .unit(product.getQuantity().getUnit())
+                .imageUrl(product.getImageUrl())
+                .createdAt(product.getCreatedAt())
+                .updatedAt(product.getUpdatedAt())
                 .build();
     }
 }

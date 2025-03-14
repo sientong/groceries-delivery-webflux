@@ -21,6 +21,12 @@ public class Order {
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public static class OrderBuilder {
+        private OrderStatus status = OrderStatus.PENDING;
+        private LocalDateTime createdAt = LocalDateTime.now();
+        private LocalDateTime updatedAt = LocalDateTime.now();
+    }
+
     public Order(String id, String userId, List<OrderItem> items, Money total, 
                 OrderStatus status, DeliveryInfo deliveryInfo, 
                 LocalDateTime createdAt, LocalDateTime updatedAt) {

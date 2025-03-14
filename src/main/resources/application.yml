@@ -1,0 +1,27 @@
+spring:
+  profiles:
+    active: dev
+  flyway:
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+# Common security configuration
+security:
+  jwt:
+    secret: ${JWT_SECRET:your-256-bit-secret}
+    expiration: 86400000  # 24 hours in milliseconds
+
+# Common API configuration
+api:
+  version: v1
+  base-path: /api/${api.version}
+
+# Common monitoring configuration
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true

@@ -2,6 +2,7 @@ package com.sientong.groceries.domain.order;
 
 import com.sientong.groceries.domain.product.Money;
 import com.sientong.groceries.domain.product.Quantity;
+
 import lombok.Getter;
 
 @Getter

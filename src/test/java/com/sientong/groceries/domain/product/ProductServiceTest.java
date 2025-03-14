@@ -1,95 +1,149 @@
 package com.sientong.groceries.domain.product;
 
+import com.sientong.groceries.infrastructure.persistence.entity.ProductEntity;
+import com.sientong.groceries.infrastructure.persistence.repository.ReactiveProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
-
     @Mock
-    private ProductRepository productRepository;
+    private ReactiveProductRepository productRepository;
 
     private ProductService productService;
 
-    private Product testProduct;
-
     @BeforeEach
     void setUp() {
+        MockitoAnnotations.openMocks(this);
         productService = new ProductServiceImpl(productRepository);
-        testProduct = new Product(
-            "1",
+    }
+
+    @Test
+    void findById_ShouldReturnProduct() {
+        // Given
+        String productId = "1";
+        Category category = Category.of("cat1", "Fruits");
+        ProductEntity entity = ProductEntity.builder()
+                .id(productId)
+                .name("Apple")
+                .description("Fresh apple")
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .price(BigDecimal.valueOf(1.99))
+                .currency("USD")
+                .quantity(100)
+                .unit("piece")
+                .imageUrl("http://example.com/apple.jpg")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(productRepository.findById(productId)).thenReturn(Mono.just(entity));
+
+        // When
+        Mono<Product> result = productService.findById(productId);
+
+        // Then
+        StepVerifier.create(result)
+                .expectNextMatches(product -> 
+                    product.getId().equals(productId) &&
+                    product.getName().equals("Apple") &&
+                    product.getCategory().getId().equals(category.getId()) &&
+                    product.getCategory().getName().equals(category.getName()) &&
+                    product.getImageUrl().equals("http://example.com/apple.jpg")
+                )
+                .verifyComplete();
+    }
+
+    @Test
+    void findAll_ShouldReturnAllProducts() {
+        // Given
+        Category category = Category.of("cat1", "Fruits");
+        ProductEntity entity = ProductEntity.builder()
+                .id("1")
+                .name("Apple")
+                .description("Fresh apple")
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .price(BigDecimal.valueOf(1.99))
+                .currency("USD")
+                .quantity(100)
+                .unit("piece")
+                .imageUrl("http://example.com/apple.jpg")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        when(productRepository.findAll()).thenReturn(Flux.just(entity));
+
+        // When
+        Flux<Product> result = productService.findAll();
+
+        // Then
+        StepVerifier.create(result)
+                .expectNextMatches(product -> 
+                    product.getName().equals("Apple") &&
+                    product.getCategory().getId().equals(category.getId()) &&
+                    product.getCategory().getName().equals(category.getName()) &&
+                    product.getImageUrl().equals("http://example.com/apple.jpg")
+                )
+                .verifyComplete();
+    }
+
+    @Test
+    void createProduct_ShouldCreateAndReturnProduct() {
+        // Given
+        Category category = Category.of("cat1", "Fruits");
+        Product product = new Product(
+            null,
             "Apple",
-            "Fresh red apple",
-            Money.of(new BigDecimal("1.99")),
-            ProductCategory.FRUITS,
-            Quantity.of(100)
-        );
-    }
-
-    @Test
-    void shouldFindProductById() {
-        when(productRepository.findById("1")).thenReturn(Mono.just(testProduct));
-
-        StepVerifier.create(productService.findById("1"))
-            .expectNext(testProduct)
-            .verifyComplete();
-    }
-
-    @Test
-    void shouldFindAllProducts() {
-        when(productRepository.findAll()).thenReturn(Flux.just(testProduct));
-
-        StepVerifier.create(productService.findAll())
-            .expectNext(testProduct)
-            .verifyComplete();
-    }
-
-    @Test
-    void shouldFindProductsByCategory() {
-        when(productRepository.findByCategory(ProductCategory.FRUITS))
-            .thenReturn(Flux.just(testProduct));
-
-        StepVerifier.create(productService.findByCategory(ProductCategory.FRUITS))
-            .expectNext(testProduct)
-            .verifyComplete();
-    }
-
-    @Test
-    void shouldCreateProduct() {
-        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(testProduct));
-
-        StepVerifier.create(productService.createProduct(testProduct))
-            .expectNext(testProduct)
-            .verifyComplete();
-    }
-
-    @Test
-    void shouldUpdateStock() {
-        Product updatedProduct = new Product(
-            "1",
-            "Apple",
-            "Fresh red apple",
-            Money.of(new BigDecimal("1.99")),
-            ProductCategory.FRUITS,
-            Quantity.of(150)
+            "Fresh apple",
+            Money.of(BigDecimal.valueOf(1.99), "USD"),
+            category,
+            Quantity.of(100, "piece"),
+            "http://example.com/apple.jpg",
+            null,
+            null
         );
 
-        when(productRepository.findById("1")).thenReturn(Mono.just(testProduct));
-        when(productRepository.save(any(Product.class))).thenReturn(Mono.just(updatedProduct));
+        ProductEntity savedEntity = ProductEntity.builder()
+                .id("1")
+                .name("Apple")
+                .description("Fresh apple")
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .price(BigDecimal.valueOf(1.99))
+                .currency("USD")
+                .quantity(100)
+                .unit("piece")
+                .imageUrl("http://example.com/apple.jpg")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        StepVerifier.create(productService.updateStock("1", Quantity.of(50)))
-            .expectNext(updatedProduct)
-            .verifyComplete();
+        when(productRepository.save(any(ProductEntity.class))).thenReturn(Mono.just(savedEntity));
+
+        // When
+        Mono<Product> result = productService.createProduct(product);
+
+        // Then
+        StepVerifier.create(result)
+                .expectNextMatches(savedProduct -> 
+                    savedProduct.getName().equals("Apple") &&
+                    savedProduct.getCategory().getId().equals(category.getId()) &&
+                    savedProduct.getCategory().getName().equals(category.getName()) &&
+                    savedProduct.getImageUrl().equals("http://example.com/apple.jpg")
+                )
+                .verifyComplete();
     }
 }

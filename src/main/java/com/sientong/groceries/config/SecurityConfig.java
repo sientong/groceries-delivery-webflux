@@ -1,6 +1,5 @@
 package com.sientong.groceries.config;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,6 +18,8 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 import com.sientong.groceries.security.JwtAuthenticationFilter;
 import com.sientong.groceries.security.JwtService;
 
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
@@ -28,6 +29,15 @@ public class SecurityConfig {
     private final ReactiveUserDetailsService userDetailsService;
     private final JwtService jwtService;
 
+    private static final String[] PUBLIC_PATHS = {
+        "/api/v1/auth/**",
+        "/swagger-ui.html",
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/webjars/**",
+        "/actuator/health"
+    };
+
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
         return http
@@ -36,15 +46,17 @@ public class SecurityConfig {
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 .authorizeExchange(exchanges -> exchanges
-                    .pathMatchers("/api/v1/auth/**").permitAll()
+                    .pathMatchers(PUBLIC_PATHS).permitAll()
                     .pathMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                    .pathMatchers(HttpMethod.POST, "/api/v1/products/**").hasRole("SELLER")
-                    .pathMatchers(HttpMethod.PUT, "/api/v1/products/**").hasRole("SELLER")
-                    .pathMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("SELLER")
-                    .pathMatchers(HttpMethod.PATCH, "/api/v1/products/**").hasRole("SELLER")
+                    .pathMatchers(HttpMethod.POST, "/api/v1/products/**").authenticated()
+                    .pathMatchers(HttpMethod.PUT, "/api/v1/products/**").authenticated()
+                    .pathMatchers(HttpMethod.DELETE, "/api/v1/products/**").authenticated()
+                    .pathMatchers(HttpMethod.PATCH, "/api/v1/products/**").authenticated()
+                    .pathMatchers("/api/v1/categories/**").authenticated()
+                    .pathMatchers("/api/v1/cart/**").authenticated()
                     .pathMatchers("/api/v1/orders/**").authenticated()
                     .pathMatchers("/api/v1/notifications/**").authenticated()
-                    .pathMatchers("/api/v1/users/**").hasRole("ADMIN")
+                    .pathMatchers("/api/v1/users/**").authenticated()
                     .anyExchange().authenticated()
                 )
                 .addFilterAt(new JwtAuthenticationFilter(jwtService, userDetailsService), 

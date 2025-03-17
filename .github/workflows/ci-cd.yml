@@ -46,7 +46,7 @@ jobs:
           cache: 'maven'
 
       - name: Build and Test Backend
-        working-directory: ./backend
+        working-directory: backend
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_R2DBC_URL: r2dbc:postgresql://localhost:5432/groceries_test
@@ -101,24 +101,13 @@ jobs:
       - name: Build and push Backend
         uses: docker/build-push-action@v4
         with:
-          context: ./backend
+          context: backend
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/groceries-backend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/groceries-backend:${{ github.sha }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/groceries-backend:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/groceries-backend:buildcache,mode=max
-
-      - name: Build and push Frontend
-        uses: docker/build-push-action@v4
-        with:
-          context: ./frontend
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/groceries-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/groceries-frontend:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/groceries-frontend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/groceries-frontend:buildcache,mode=max
 
 #   deploy:
 #     name: Deploy to Production

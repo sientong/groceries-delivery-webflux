@@ -1,4 +1,4 @@
-package com.sientong.groceries.domain.product;
+package com.sientong.groceries.domain.common;
 
 import lombok.Value;
 import java.math.BigDecimal;
@@ -7,6 +7,7 @@ import java.util.Locale;
 
 @Value
 public class Money {
+    public static final String DEFAULT_CURRENCY = "USD";
     public static final Money ZERO = Money.of(BigDecimal.ZERO);
     
     BigDecimal amount;
@@ -28,11 +29,11 @@ public class Money {
     }
 
     public static Money of(BigDecimal amount) {
-        return new Money(amount, "USD");
+        return new Money(amount, DEFAULT_CURRENCY);
     }
 
     public static Money of(BigDecimal amount, String currency) {
-        return new Money(amount, currency);
+        return new Money(amount, currency != null && !currency.trim().isEmpty() ? currency : DEFAULT_CURRENCY);
     }
 
     public Money add(Money other) {

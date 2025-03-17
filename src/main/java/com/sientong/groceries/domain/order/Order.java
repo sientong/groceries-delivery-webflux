@@ -1,13 +1,14 @@
 package com.sientong.groceries.domain.order;
 
-import com.sientong.groceries.domain.product.Money;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.sientong.groceries.domain.common.Money;
+
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder

@@ -1,7 +1,7 @@
 package com.sientong.groceries.api.request;
 
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.order.OrderItem;
-import com.sientong.groceries.domain.product.Quantity;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

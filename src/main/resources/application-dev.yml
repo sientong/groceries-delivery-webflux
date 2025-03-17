@@ -2,7 +2,7 @@ spring:
   r2dbc:
     url: r2dbc:postgresql://postgres-dev:5432/groceries_dev
     username: postgres
-    password: postgres
+    password: 099052
   data:
     redis:
       host: redis-dev
@@ -14,12 +14,18 @@ spring:
     enabled: true
     url: jdbc:postgresql://postgres-dev:5432/groceries_dev
     user: postgres
-    password: postgres
+    password: 099052
     baseline-on-migrate: true
     locations: classpath:db/migration
 
 server:
   port: 8080
+
+# Security configuration
+security:
+  jwt:
+    secret: ${JWT_SECRET:your-256-bit-secret-key-for-development-environment-only}
+    expiration: 86400000  # 24 hours in milliseconds
 
 logging:
   level:
@@ -27,12 +33,12 @@ logging:
     org.springframework.r2dbc: DEBUG
     com.sientong.groceries: DEBUG
     org.flywaydb: DEBUG
-    org.springframework.security: TRACE
-    org.springframework.security.web.server: TRACE
-    org.springframework.actuator: DEBUG
-    org.springframework.boot.actuate: DEBUG
-    org.springframework.security.authentication: TRACE
-    org.springframework.security.crypto: TRACE
+    org.springframework.security: ERROR
+    org.springframework.security.web.server: ERROR
+    org.springframework.actuator: ERROR
+    org.springframework.boot.actuate: ERROR
+    org.springframework.security.authentication: ERROR
+    org.springframework.security.crypto: ERROR
 
 # Development-specific monitoring configuration
 management:

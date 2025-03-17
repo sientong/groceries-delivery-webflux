@@ -1,10 +1,13 @@
 package com.sientong.groceries.infrastructure.payment;
 
-import com.sientong.groceries.domain.payment.PaymentGateway;
-import com.sientong.groceries.domain.product.Money;
-import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 import java.math.BigDecimal;
+
+import org.springframework.stereotype.Component;
+
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.payment.PaymentGateway;
+
+import reactor.core.publisher.Mono;
 
 @Component
 public class SimplePaymentGateway implements PaymentGateway {

@@ -1,5 +1,6 @@
 package com.sientong.groceries.api.controller;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,15 +11,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sientong.groceries.api.request.ProductRequest;
 import com.sientong.groceries.api.request.StockUpdateRequest;
+import com.sientong.groceries.api.response.PaginatedResponse;
 import com.sientong.groceries.api.response.ProductResponse;
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.product.Product;
 import com.sientong.groceries.domain.product.ProductService;
-import com.sientong.groceries.domain.product.Quantity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,9 +50,42 @@ public class ProductController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
-    public Flux<ProductResponse> getAllProducts() {
-        return productService.findAll()
-                .map(ProductResponse::fromDomain);
+    public Mono<PaginatedResponse<ProductResponse>> getAllProducts(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "12") int size,
+        @RequestParam(required = false) String categoryId,
+        @RequestParam(required = false) String query
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Flux<Product> productsFlux = categoryId != null 
+            ? productService.findByCategory(categoryId)
+            : productService.findAll();
+            
+        if (query != null && !query.trim().isEmpty()) {
+            productsFlux = productsFlux.filter(product -> 
+                product.getName().toLowerCase().contains(query.toLowerCase()) ||
+                product.getDescription().toLowerCase().contains(query.toLowerCase())
+            );
+        }
+
+        return productsFlux
+            .map(ProductResponse::fromDomain)
+            .collectList()
+            .map(products -> {
+                int start = (int) pageRequest.getOffset();
+                int end = Math.min((start + pageRequest.getPageSize()), products.size());
+                
+                return PaginatedResponse.<ProductResponse>builder()
+                    .content(products.subList(start, end))
+                    .number(page)
+                    .size(size)
+                    .totalElements(products.size())
+                    .totalPages((int) Math.ceil((double) products.size() / size))
+                    .isFirst(page == 0)
+                    .isLast(end >= products.size())
+                    .isEmpty(products.isEmpty())
+                    .build();
+            });
     }
 
     @Operation(
@@ -67,23 +103,6 @@ public class ProductController {
         @PathVariable String id
     ) {
         return productService.findById(id)
-                .map(ProductResponse::fromDomain);
-    }
-
-    @Operation(
-        summary = "Get products by category",
-        description = "Retrieve all products in a specific category"
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
-        @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
-    @GetMapping("/category/{categoryId}")
-    public Flux<ProductResponse> getProductsByCategory(
-        @Parameter(description = "Product category ID", required = true)
-        @PathVariable String categoryId
-    ) {
-        return productService.findByCategory(categoryId)
                 .map(ProductResponse::fromDomain);
     }
 

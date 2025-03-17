@@ -7,10 +7,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.product.Category;
-import com.sientong.groceries.domain.product.Money;
 import com.sientong.groceries.domain.product.Product;
-import com.sientong.groceries.domain.product.Quantity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

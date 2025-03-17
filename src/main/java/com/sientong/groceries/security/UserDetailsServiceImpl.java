@@ -23,6 +23,6 @@ public class UserDetailsServiceImpl implements ReactiveUserDetailsService {
     public Mono<UserDetails> findByUsername(String username) {
         return userRepository.findByEmail(username)
             .switchIfEmpty(Mono.error(new UsernameNotFoundException("User not found")))
-            .map(UserDetailsImpl::new);
+            .map(UserPrincipal::fromDomain);
     }
 }

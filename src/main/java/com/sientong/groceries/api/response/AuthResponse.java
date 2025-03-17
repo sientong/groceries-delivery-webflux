@@ -1,6 +1,7 @@
-package com.sientong.groceries.api.model;
+package com.sientong.groceries.api.response;
 
 import com.sientong.groceries.domain.user.User;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;

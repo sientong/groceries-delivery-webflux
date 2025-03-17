@@ -1,5 +1,7 @@
 package com.sientong.groceries.domain.product;
 
+import com.sientong.groceries.domain.common.Quantity;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

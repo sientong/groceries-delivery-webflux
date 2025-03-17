@@ -26,6 +26,45 @@ public class CartWebSocketHandler implements WebSocketHandler {
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
+        String token = extractTokenFromQuery(session);
+        
+        // If token is present in query params, validate it immediately
+        if (token != null) {
+            String userId = jwtService.validateTokenAndGetUsername(token);
+            if (userId != null) {
+                sessions.put(userId, session);
+                return handleAuthenticatedSession(session, userId);
+            }
+        }
+
+        // Otherwise, wait for auth message
+        return handleUnauthenticatedSession(session);
+    }
+
+    private String extractTokenFromQuery(WebSocketSession session) {
+        String query = session.getHandshakeInfo().getUri().getQuery();
+        if (query != null && query.startsWith("token=")) {
+            String token = query.substring(6); // Remove "token="
+            if (token.startsWith("Bearer%20")) {
+                return token.substring(9); // Remove "Bearer%20"
+            }
+            return token;
+        }
+        return null;
+    }
+
+    private Mono<Void> handleAuthenticatedSession(WebSocketSession session, String userId) {
+        return session.send(Mono.just(
+            session.textMessage("{\"type\":\"connected\",\"message\":\"Successfully connected\"}")
+        )).then(
+            session.receive()
+                .doOnComplete(() -> sessions.remove(userId))
+                .doOnError(e -> sessions.remove(userId))
+                .then()
+        );
+    }
+
+    private Mono<Void> handleUnauthenticatedSession(WebSocketSession session) {
         return session.receive()
                 .flatMap(message -> {
                     try {
@@ -44,11 +83,7 @@ public class CartWebSocketHandler implements WebSocketHandler {
                         String userId = jwtService.validateTokenAndGetUsername(token);
                         if (userId != null) {
                             sessions.put(userId, session);
-                            
-                            // Send confirmation
-                            return session.send(Mono.just(
-                                session.textMessage("{\"type\":\"connected\",\"message\":\"Successfully connected\"}")
-                            ));
+                            return handleAuthenticatedSession(session, userId);
                         }
                         
                         // Invalid token

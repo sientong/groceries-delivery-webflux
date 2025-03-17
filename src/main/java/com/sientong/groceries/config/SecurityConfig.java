@@ -13,7 +13,8 @@ import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 
 import com.sientong.groceries.security.JwtAuthenticationFilter;
 import com.sientong.groceries.security.JwtService;
@@ -35,7 +36,13 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/v3/api-docs/**",
         "/webjars/**",
-        "/actuator/health"
+        "/actuator/health",
+        "/ws/**"  // Allow WebSocket connections without authentication
+    };
+
+    private static final String[] GET_ONLY_PUBLIC_PATHS = {
+        "/api/v1/products/**",
+        "/api/v1/categories/**"  
     };
 
     @Bean
@@ -44,24 +51,20 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+                .securityContextRepository(securityContextRepository())
                 .authorizeExchange(exchanges -> exchanges
                     .pathMatchers(PUBLIC_PATHS).permitAll()
-                    .pathMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                    .pathMatchers(HttpMethod.POST, "/api/v1/products/**").authenticated()
-                    .pathMatchers(HttpMethod.PUT, "/api/v1/products/**").authenticated()
-                    .pathMatchers(HttpMethod.DELETE, "/api/v1/products/**").authenticated()
-                    .pathMatchers(HttpMethod.PATCH, "/api/v1/products/**").authenticated()
-                    .pathMatchers("/api/v1/categories/**").authenticated()
-                    .pathMatchers("/api/v1/cart/**").authenticated()
-                    .pathMatchers("/api/v1/orders/**").authenticated()
-                    .pathMatchers("/api/v1/notifications/**").authenticated()
-                    .pathMatchers("/api/v1/users/**").authenticated()
+                    .pathMatchers(HttpMethod.GET, GET_ONLY_PUBLIC_PATHS).permitAll()
                     .anyExchange().authenticated()
                 )
                 .addFilterAt(new JwtAuthenticationFilter(jwtService, userDetailsService), 
                            SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
+    }
+
+    @Bean
+    public ServerSecurityContextRepository securityContextRepository() {
+        return new WebSessionServerSecurityContextRepository();
     }
 
     @Bean

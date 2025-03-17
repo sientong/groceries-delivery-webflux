@@ -1,4 +1,4 @@
-package com.sientong.groceries.domain.product;
+package com.sientong.groceries.domain.common;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

@@ -1,9 +1,12 @@
 package com.sientong.groceries.domain.product;
 
+import org.springframework.stereotype.Service;
+
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.infrastructure.persistence.entity.ProductEntity;
 import com.sientong.groceries.infrastructure.persistence.repository.ReactiveProductRepository;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -56,8 +59,12 @@ public class ProductServiceImpl implements ProductService {
                     entity.setName(product.getName());
                     entity.setDescription(product.getDescription());
                     entity.setPrice(product.getPrice().getAmount());
+                    entity.setCurrency(product.getPrice().getCurrency());
                     entity.setCategoryId(product.getCategory().getId());
+                    entity.setCategoryName(product.getCategory().getName());
                     entity.setQuantity(product.getQuantity().getValue());
+                    entity.setUnit(product.getQuantity().getUnit());
+                    entity.setImageUrl(product.getImageUrl());
                     return entity;
                 })
                 .flatMap(productRepository::save)

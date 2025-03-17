@@ -1,10 +1,11 @@
 package com.sientong.groceries.controller;
 
-import com.sientong.groceries.api.controller.ProductController;
-import com.sientong.groceries.api.request.ProductRequest;
-import com.sientong.groceries.api.request.StockUpdateRequest;
-import com.sientong.groceries.api.response.ProductResponse;
-import com.sientong.groceries.domain.product.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,14 +14,19 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+
+import com.sientong.groceries.api.controller.ProductController;
+import com.sientong.groceries.api.request.ProductRequest;
+import com.sientong.groceries.api.request.StockUpdateRequest;
+import com.sientong.groceries.api.response.ProductResponse;
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.common.Quantity;
+import com.sientong.groceries.domain.product.Category;
+import com.sientong.groceries.domain.product.Product;
+import com.sientong.groceries.domain.product.ProductService;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(ProductController.class)

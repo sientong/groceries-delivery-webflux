@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.sientong.groceries.domain.cart.CartItem;
-import com.sientong.groceries.domain.product.Money;
+import com.sientong.groceries.domain.common.Money;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Table("cart_items")
 public class CartItemEntity {
     private String id;
+    private String cartId;
     private String productId;
     private String name;
     private String description;

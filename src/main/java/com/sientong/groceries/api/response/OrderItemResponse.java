@@ -2,8 +2,8 @@ package com.sientong.groceries.api.response;
 
 import java.math.BigDecimal;
 
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.order.OrderItem;
-import com.sientong.groceries.domain.product.Quantity;
 
 import lombok.Builder;
 import lombok.Value;

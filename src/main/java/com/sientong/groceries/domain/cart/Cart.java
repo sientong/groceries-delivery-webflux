@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sientong.groceries.domain.product.Money;
+import com.sientong.groceries.domain.common.Money;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

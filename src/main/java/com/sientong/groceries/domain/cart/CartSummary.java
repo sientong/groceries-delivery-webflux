@@ -1,6 +1,7 @@
 package com.sientong.groceries.domain.cart;
 
-import com.sientong.groceries.domain.product.Money;
+import com.sientong.groceries.domain.common.Money;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,7 +1,9 @@
 package com.sientong.groceries.api.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,6 +18,7 @@ import com.sientong.groceries.api.request.UpdateCartItemRequest;
 import com.sientong.groceries.api.response.CartResponse;
 import com.sientong.groceries.api.response.CartSummaryResponse;
 import com.sientong.groceries.domain.cart.CartService;
+import com.sientong.groceries.security.UserPrincipal;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,8 +28,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
@@ -47,12 +52,17 @@ public class CartController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
-    public Mono<ResponseEntity<CartResponse>> getCart(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userId
-    ) {
-        return cartService.getCart(userId)
-                .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+    public Mono<ResponseEntity<CartResponse>> getCart() {
+        return ReactiveSecurityContextHolder.getContext()
+            .<Authentication>map(SecurityContext::getAuthentication)
+            .<UserPrincipal>map(auth -> (UserPrincipal) auth.getPrincipal())
+            .<String>map(UserPrincipal::getId)
+            .flatMap(userId -> {
+                log.debug("Getting cart for user: {}", userId);
+                return cartService.getCart(userId)
+                    .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)))
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
+            });
     }
 
     @Operation(
@@ -68,12 +78,18 @@ public class CartController {
     })
     @PostMapping("/items")
     public Mono<ResponseEntity<CartResponse>> addToCart(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userId,
         @Parameter(description = "Add to cart request", required = true)
         @Valid @RequestBody AddToCartRequest request
     ) {
-        return cartService.addToCart(userId, request.toDomain())
-                .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)));
+        return ReactiveSecurityContextHolder.getContext()
+            .<Authentication>map(SecurityContext::getAuthentication)
+            .<UserPrincipal>map(auth -> (UserPrincipal) auth.getPrincipal())
+            .<String>map(UserPrincipal::getId)
+            .flatMap(userId -> {
+                log.debug("Adding item to cart for user: {}", userId);
+                return cartService.addToCart(userId, request.toDomain())
+                    .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)));
+            });
     }
 
     @Operation(
@@ -89,15 +105,21 @@ public class CartController {
     })
     @PatchMapping("/items/{itemId}")
     public Mono<ResponseEntity<CartResponse>> updateCartItem(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userId,
         @Parameter(description = "Cart item ID", required = true)
         @PathVariable String itemId,
         @Parameter(description = "Update cart item request", required = true)
         @Valid @RequestBody UpdateCartItemRequest request
     ) {
-        return cartService.updateCartItem(userId, itemId, request.toDomain())
-                .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+        return ReactiveSecurityContextHolder.getContext()
+            .<Authentication>map(SecurityContext::getAuthentication)
+            .<UserPrincipal>map(auth -> (UserPrincipal) auth.getPrincipal())
+            .<String>map(UserPrincipal::getId)
+            .flatMap(userId -> {
+                log.debug("Updating cart item {} for user: {}", itemId, userId);
+                return cartService.updateCartItem(userId, itemId, request.toDomain())
+                    .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)))
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
+            });
     }
 
     @Operation(
@@ -112,13 +134,19 @@ public class CartController {
     })
     @DeleteMapping("/items/{itemId}")
     public Mono<ResponseEntity<CartResponse>> removeCartItem(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userId,
         @Parameter(description = "Cart item ID", required = true)
         @PathVariable String itemId
     ) {
-        return cartService.removeCartItem(userId, itemId)
-                .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+        return ReactiveSecurityContextHolder.getContext()
+            .<Authentication>map(SecurityContext::getAuthentication)
+            .<UserPrincipal>map(auth -> (UserPrincipal) auth.getPrincipal())
+            .<String>map(UserPrincipal::getId)
+            .flatMap(userId -> {
+                log.debug("Removing cart item {} for user: {}", itemId, userId);
+                return cartService.removeCartItem(userId, itemId)
+                    .map(cart -> ResponseEntity.ok(CartResponse.fromDomain(cart)))
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
+            });
     }
 
     @Operation(
@@ -131,11 +159,16 @@ public class CartController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping
-    public Mono<ResponseEntity<Void>> clearCart(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userId
-    ) {
-        return cartService.clearCart(userId)
-                .then(Mono.just(ResponseEntity.ok().build()));
+    public Mono<ResponseEntity<Void>> clearCart() {
+        return ReactiveSecurityContextHolder.getContext()
+            .<Authentication>map(SecurityContext::getAuthentication)
+            .<UserPrincipal>map(auth -> (UserPrincipal) auth.getPrincipal())
+            .<String>map(UserPrincipal::getId)
+            .flatMap(userId -> {
+                log.debug("Clearing cart for user: {}", userId);
+                return cartService.clearCart(userId)
+                    .then(Mono.just(ResponseEntity.ok().build()));
+            });
     }
 
     @Operation(
@@ -149,11 +182,16 @@ public class CartController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/summary")
-    public Mono<ResponseEntity<CartSummaryResponse>> getCartSummary(
-        @Parameter(hidden = true) @AuthenticationPrincipal String userId
-    ) {
-        return cartService.getCartSummary(userId)
-                .map(summary -> ResponseEntity.ok(CartSummaryResponse.fromDomain(summary)))
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+    public Mono<ResponseEntity<CartSummaryResponse>> getCartSummary() {
+        return ReactiveSecurityContextHolder.getContext()
+            .<Authentication>map(SecurityContext::getAuthentication)
+            .<UserPrincipal>map(auth -> (UserPrincipal) auth.getPrincipal())
+            .<String>map(UserPrincipal::getId)
+            .flatMap(userId -> {
+                log.debug("Getting cart summary for user: {}", userId);
+                return cartService.getCartSummary(userId)
+                    .map(summary -> ResponseEntity.ok(CartSummaryResponse.fromDomain(summary)))
+                    .defaultIfEmpty(ResponseEntity.notFound().build());
+            });
     }
 }

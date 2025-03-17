@@ -18,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.notification.Notification;
 import com.sientong.groceries.domain.notification.NotificationService;
 import com.sientong.groceries.domain.notification.NotificationType;
@@ -28,8 +30,6 @@ import com.sientong.groceries.domain.order.OrderRepository;
 import com.sientong.groceries.domain.order.OrderService;
 import com.sientong.groceries.domain.order.OrderServiceImpl;
 import com.sientong.groceries.domain.order.OrderStatus;
-import com.sientong.groceries.domain.product.Money;
-import com.sientong.groceries.domain.product.Quantity;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

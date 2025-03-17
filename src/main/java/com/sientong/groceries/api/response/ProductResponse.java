@@ -1,12 +1,13 @@
 package com.sientong.groceries.api.response;
 
-import com.sientong.groceries.domain.product.Product;
-import com.sientong.groceries.domain.product.Category;
-import lombok.Builder;
-import lombok.Data;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import com.sientong.groceries.domain.product.Category;
+import com.sientong.groceries.domain.product.Product;
+
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder

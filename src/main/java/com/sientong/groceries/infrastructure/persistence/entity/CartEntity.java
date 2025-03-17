@@ -2,13 +2,15 @@ package com.sientong.groceries.infrastructure.persistence.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.sientong.groceries.domain.cart.Cart;
-import com.sientong.groceries.domain.product.Money;
+import com.sientong.groceries.domain.common.Money;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +26,9 @@ public class CartEntity {
     @Id
     private String id;
     private String userId;
-    private List<CartItemEntity> items;
+    @Transient
+    @Builder.Default
+    private List<CartItemEntity> items = new ArrayList<>();
     private BigDecimal total;
     private String currency;
     private LocalDateTime updatedAt;
@@ -36,8 +40,9 @@ public class CartEntity {
                 .items(items.stream()
                         .map(CartItemEntity::toDomain)
                         .toList())
-                .total(Money.of(total, currency))
-                .updatedAt(updatedAt)
+                .total(Money.of(total != null ? total : BigDecimal.ZERO, 
+                        currency != null ? currency : Money.DEFAULT_CURRENCY))
+                .updatedAt(updatedAt != null ? updatedAt : LocalDateTime.now())
                 .build();
     }
 

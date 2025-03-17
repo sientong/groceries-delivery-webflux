@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.common.Quantity;
+
 class ProductTest {
     @Test
     void shouldCreateValidProduct() {

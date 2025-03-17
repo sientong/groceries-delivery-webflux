@@ -1,9 +1,9 @@
 -- Sample Users
 INSERT INTO users (id, email, password, first_name, last_name, role, address, phone, created_at) VALUES
-    ('u1', 'admin@groceries.com', '$2a$10$dL4/BjwNZV4mKU0nGFnzWe6psQIwdE.DOOXkJQpKH8KgV0TM8SZuy', 'Admin', 'User', 'ADMIN', '123 Admin St', '+1234567890', '2025-03-13 08:00:00'),
-    ('u2', 'john@example.com', '$2a$10$dL4/BjwNZV4mKU0nGFnzWe6psQIwdE.DOOXkJQpKH8KgV0TM8SZuy', 'John', 'Doe', 'CUSTOMER', '456 Customer Ave', '+1234567891', '2025-03-13 08:00:00'),
-    ('u3', 'jane@example.com', '$2a$10$dL4/BjwNZV4mKU0nGFnzWe6psQIwdE.DOOXkJQpKH8KgV0TM8SZuy', 'Jane', 'Smith', 'CUSTOMER', '789 Customer Blvd', '+1234567892', '2025-03-13 08:00:00'),
-    ('u4', 'driver1@groceries.com', '$2a$10$dL4/BjwNZV4mKU0nGFnzWe6psQIwdE.DOOXkJQpKH8KgV0TM8SZuy', 'Mike', 'Driver', 'DRIVER', '321 Driver Rd', '+1234567893', '2025-03-13 08:00:00');
+    ('u1', 'admin@groceries.com', '$2a$10$AiWpH1tuE7sIin0krzGjneHscLP0JkeXa2pD5QcuM09XVgfvXylxm', 'Admin', 'User', 'ADMIN', '123 Admin St', '+1234567890', '2025-03-13 08:00:00'),
+    ('u2', 'john@example.com', '$2a$10$AiWpH1tuE7sIin0krzGjneHscLP0JkeXa2pD5QcuM09XVgfvXylxm', 'John', 'Doe', 'CUSTOMER', '456 Customer Ave', '+1234567891', '2025-03-13 08:00:00'),
+    ('u3', 'jane@example.com', '$2a$10$AiWpH1tuE7sIin0krzGjneHscLP0JkeXa2pD5QcuM09XVgfvXylxm', 'Jane', 'Smith', 'CUSTOMER', '789 Customer Blvd', '+1234567892', '2025-03-13 08:00:00'),
+    ('u4', 'driver1@groceries.com', '$2a$10$AiWpH1tuE7sIin0krzGjneHscLP0JkeXa2pD5QcuM09XVgfvXylxm', 'Mike', 'Driver', 'DRIVER', '321 Driver Rd', '+1234567893', '2025-03-13 08:00:00');
 
 -- Sample Products
 INSERT INTO products (id, name, description, price, category, quantity, created_at, updated_at) VALUES

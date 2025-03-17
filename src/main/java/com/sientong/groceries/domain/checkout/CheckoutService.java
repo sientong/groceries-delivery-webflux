@@ -1,15 +1,17 @@
 package com.sientong.groceries.domain.checkout;
 
+import org.springframework.stereotype.Service;
+
+import com.sientong.groceries.domain.common.Quantity;
+import com.sientong.groceries.domain.notification.NotificationService;
+import com.sientong.groceries.domain.notification.NotificationType;
 import com.sientong.groceries.domain.order.Order;
 import com.sientong.groceries.domain.order.OrderStatus;
 import com.sientong.groceries.domain.payment.PaymentService;
 import com.sientong.groceries.domain.product.Product;
 import com.sientong.groceries.domain.product.ProductRepository;
-import com.sientong.groceries.domain.product.Quantity;
-import com.sientong.groceries.domain.notification.NotificationService;
-import com.sientong.groceries.domain.notification.NotificationType;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;

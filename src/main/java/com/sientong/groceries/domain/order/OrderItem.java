@@ -1,7 +1,7 @@
 package com.sientong.groceries.domain.order;
 
-import com.sientong.groceries.domain.product.Money;
-import com.sientong.groceries.domain.product.Quantity;
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.common.Quantity;
 
 import lombok.Getter;
 

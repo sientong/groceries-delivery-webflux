@@ -8,7 +8,7 @@ spring:
 # Common security configuration
 security:
   jwt:
-    secret: ${JWT_SECRET:your-256-bit-secret}
+    secret: ${JWT_SECRET:your-256-bit-secret-key-for-development-environment-only}
     expiration: 86400000  # 24 hours in milliseconds
 
 # Common API configuration

@@ -1,6 +1,7 @@
 package com.sientong.groceries.domain.payment;
 
-import com.sientong.groceries.domain.product.Money;
+import com.sientong.groceries.domain.common.Money;
+
 import reactor.core.publisher.Mono;
 
 public interface PaymentGateway {

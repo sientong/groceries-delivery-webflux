@@ -1,13 +1,15 @@
 package com.sientong.groceries.infrastructure.persistence.adapter;
 
-import com.sientong.groceries.domain.product.Product;
-import com.sientong.groceries.domain.product.ProductRepository;
-import com.sientong.groceries.domain.product.Quantity;
-import com.sientong.groceries.infrastructure.persistence.entity.ProductEntity;
-import com.sientong.groceries.infrastructure.persistence.repository.ReactiveProductRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Component;
+
+import com.sientong.groceries.domain.common.Quantity;
+import com.sientong.groceries.domain.product.Product;
+import com.sientong.groceries.domain.product.ProductRepository;
+import com.sientong.groceries.infrastructure.persistence.entity.ProductEntity;
+import com.sientong.groceries.infrastructure.persistence.repository.ReactiveProductRepository;
+
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

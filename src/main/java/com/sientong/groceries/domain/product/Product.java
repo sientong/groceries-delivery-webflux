@@ -1,9 +1,12 @@
 package com.sientong.groceries.domain.product;
 
+import java.time.LocalDateTime;
+
+import com.sientong.groceries.domain.common.Money;
+import com.sientong.groceries.domain.common.Quantity;
+
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Builder

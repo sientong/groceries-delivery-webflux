@@ -1,17 +1,19 @@
 package com.sientong.groceries.infrastructure.persistence.entity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+import com.sientong.groceries.domain.common.Money;
 import com.sientong.groceries.domain.payment.Payment;
 import com.sientong.groceries.domain.payment.PaymentStatus;
-import com.sientong.groceries.domain.product.Money;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Data
 @Builder

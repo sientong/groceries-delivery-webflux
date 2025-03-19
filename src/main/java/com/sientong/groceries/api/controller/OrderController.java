@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sientong.groceries.api.request.OrderRequest;
 import com.sientong.groceries.api.response.OrderResponse;
+import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.order.Order;
+import com.sientong.groceries.domain.order.OrderItem;
 import com.sientong.groceries.domain.order.OrderService;
 import com.sientong.groceries.domain.order.OrderStatus;
+import com.sientong.groceries.domain.product.ProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,8 +30,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/orders")
 @Tag(name = "Order", description = "Order management APIs")
@@ -36,6 +42,7 @@ import reactor.core.publisher.Mono;
 public class OrderController {
 
     private final OrderService orderService;
+    private final ProductService productService;
 
     @GetMapping
     @Operation(summary = "Get all orders", description = "Retrieve a list of all orders")
@@ -57,13 +64,25 @@ public class OrderController {
                     schema = @Schema(implementation = OrderResponse.class)))
     @PreAuthorize("hasRole('CUSTOMER')")
     public Mono<ResponseEntity<OrderResponse>> createOrder(@Valid @RequestBody OrderRequest request) {
-        Order order = request.toDomain();
-        order.updateStatus(OrderStatus.PENDING);
-
-        return orderService.createOrder(order)
-                .map(OrderResponse::fromDomain)
-                .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
-    }
+        return Flux.fromIterable(request.getItems())
+            .flatMap(itemRequest -> productService.findById(itemRequest.getProductId())
+                .map(product -> OrderItem.of(
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
+                    Quantity.of(itemRequest.getQuantity())
+                ))
+            )
+            .collectList()
+        .map(orderItems -> Order.builder()
+            .userId(request.getUserId())
+            .items(orderItems)
+            .status(OrderStatus.PENDING)
+            .build())
+        .flatMap(orderService::createOrder)
+        .map(OrderResponse::fromDomain)
+        .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
+}
 
     @GetMapping("/{id}")
     @Operation(summary = "Get order by ID", description = "Retrieve an order by its ID")
@@ -97,7 +116,7 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Order status updated successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = OrderResponse.class)))
-    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     public Mono<ResponseEntity<OrderResponse>> updateOrderStatus(
             @PathVariable String id,
             @RequestParam OrderStatus status) {
@@ -112,7 +131,7 @@ public class OrderController {
     @ApiResponse(responseCode = "200", description = "Orders retrieved successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = OrderResponse.class)))
-    @PreAuthorize("hasAnyRole('ADMIN', 'DRIVER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SELLER')")
     public Mono<ResponseEntity<List<OrderResponse>>> getOrdersByStatus(@PathVariable OrderStatus status) {
         return orderService.getOrdersByStatus(status)
                 .map(OrderResponse::fromDomain)
@@ -121,15 +140,15 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/assign")
-    @Operation(summary = "Assign driver to order", description = "Assign a driver to an existing order")
-    @ApiResponse(responseCode = "200", description = "Driver assigned successfully",
+    @Operation(summary = "Assign seller to order", description = "Assign a seller to an existing order")
+    @ApiResponse(responseCode = "200", description = "Seller assigned successfully",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = OrderResponse.class)))
     @PreAuthorize("hasRole('ADMIN')")
-    public Mono<ResponseEntity<OrderResponse>> assignDriver(
+    public Mono<ResponseEntity<OrderResponse>> assignSeller(
             @PathVariable String id,
-            @Valid @RequestParam String driverId) {
-        return orderService.assignDriver(id, driverId)
+            @Valid @RequestParam String sellerId) {
+        return orderService.assignSeller(id, sellerId)
                 .map(OrderResponse::fromDomain)
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());

@@ -37,11 +37,10 @@ public class CartEntity {
         return Cart.builder()
                 .id(id)
                 .userId(userId)
-                .items(items.stream()
+                .items(items != null ? items.stream()
                         .map(CartItemEntity::toDomain)
-                        .toList())
-                .total(Money.of(total != null ? total : BigDecimal.ZERO, 
-                        currency != null ? currency : Money.DEFAULT_CURRENCY))
+                        .toList() : new ArrayList<>())
+                .total(total != null && currency != null ? Money.of(total, currency) : Money.ZERO)
                 .updatedAt(updatedAt != null ? updatedAt : LocalDateTime.now())
                 .build();
     }
@@ -50,12 +49,12 @@ public class CartEntity {
         return CartEntity.builder()
                 .id(cart.getId())
                 .userId(cart.getUserId())
-                .items(cart.getItems().stream()
+                .items(cart.getItems() != null ? cart.getItems().stream()
                         .map(CartItemEntity::fromDomain)
-                        .toList())
-                .total(cart.getTotal().getAmount())
-                .currency(cart.getTotal().getCurrency())
-                .updatedAt(cart.getUpdatedAt())
+                        .toList() : new ArrayList<>())
+                .total(cart.getTotal() != null ? cart.getTotal().getAmount() : Money.ZERO.getAmount())
+                .currency(cart.getTotal() != null ? cart.getTotal().getCurrency() : Money.ZERO.getCurrency())
+                .updatedAt(cart.getUpdatedAt() != null ? cart.getUpdatedAt() : LocalDateTime.now())
                 .build();
     }
 }

@@ -18,6 +18,7 @@ public class UserResponse {
     private String phoneNumber;
     private String createdAt;
     private String updatedAt;
+    private boolean enabled;
 
     public static UserResponse fromDomain(User user) {
         return UserResponse.builder()
@@ -28,6 +29,7 @@ public class UserResponse {
             .role(user.getRole())
             .address(user.getAddress())
             .phoneNumber(user.getPhone())
+            .enabled(user.isEnabled())
             .build();
     }
 }

@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,7 +19,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.sientong.groceries.domain.common.Money;
 import com.sientong.groceries.domain.common.Quantity;
-import com.sientong.groceries.domain.notification.Notification;
+import com.sientong.groceries.domain.notification.MockableNotification;
 import com.sientong.groceries.domain.notification.NotificationService;
 import com.sientong.groceries.domain.notification.NotificationType;
 import com.sientong.groceries.domain.order.DeliveryInfo;
@@ -44,94 +43,93 @@ class OrderServiceTest {
     private NotificationService notificationService;
 
     private OrderService orderService;
+    private Order testOrder;
+    private OrderItem testItem;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         orderService = new OrderServiceImpl(orderRepository, notificationService);
+        
+        testItem = OrderItem.of(
+            "1", "Organic Apples", Money.of(BigDecimal.valueOf(5.99)), Quantity.of(2)
+        );
+
+        testOrder = Order.builder()
+                .id("1")
+                .userId("user1")
+                .items(List.of(testItem))
+                .status(OrderStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .build();
     }
 
     @Test
     void shouldCreateOrder() {
-        OrderItem item = OrderItem.of(
-            "1", "Organic Apples", Money.of(BigDecimal.valueOf(5.99)), Quantity.of(2)
-        );
-
-        Order order = Order.builder()
-                .id("1")
-                .userId("user1")
-                .items(List.of(item))
-                .status(OrderStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        when(orderRepository.save(any(Order.class))).thenReturn(Mono.just(order));
+        when(orderRepository.save(any(Order.class))).thenReturn(Mono.just(testOrder));
         when(notificationService.createNotification(
                 anyString(), anyString(), anyString(), any(NotificationType.class), anyString()
-        )).thenReturn(Mono.just(mock(Notification.class)));
+        )).thenReturn(Mono.just(new MockableNotification()));
 
-        StepVerifier.create(orderService.createOrder(order))
-                .expectNext(order)
+        StepVerifier.create(orderService.createOrder(testOrder))
+                .expectNext(testOrder)
                 .verifyComplete();
 
         verify(notificationService).createNotification(
-                eq(order.getUserId()),
+                eq(testOrder.getUserId()),
                 eq("Order Created"),
-                contains(order.getId()),
+                contains(testOrder.getId()),
                 eq(NotificationType.ORDER_CREATED),
-                eq(order.getId())
+                eq(testOrder.getId())
         );
     }
 
     @Test
     void shouldUpdateOrderStatus() {
-        Order order = Order.builder()
-                .id("1")
-                .userId("user1")
-                .status(OrderStatus.PENDING)
+        Order updatedOrder = Order.builder()
+                .id(testOrder.getId())
+                .userId(testOrder.getUserId())
+                .items(testOrder.getItems())
+                .status(OrderStatus.CONFIRMED)
+                .createdAt(testOrder.getCreatedAt())
                 .build();
 
-        when(orderRepository.findById("1")).thenReturn(Mono.just(order));
+        when(orderRepository.findById("1")).thenReturn(Mono.just(testOrder));
         when(orderRepository.updateStatus("1", OrderStatus.CONFIRMED))
-                .thenReturn(Mono.just(order));
+                .thenReturn(Mono.just(updatedOrder));
         when(notificationService.createNotification(
                 anyString(), anyString(), anyString(), any(NotificationType.class), anyString()
-        )).thenReturn(Mono.just(mock(Notification.class)));
+        )).thenReturn(Mono.just(new MockableNotification()));
 
         StepVerifier.create(orderService.updateOrderStatus("1", OrderStatus.CONFIRMED))
-                .expectNext(order)
+                .expectNext(updatedOrder)
                 .verifyComplete();
 
         verify(notificationService).createNotification(
-                eq(order.getUserId()),
+                eq(testOrder.getUserId()),
                 eq("Order Status Updated"),
-                contains(order.getId()),
+                contains(testOrder.getId()),
                 eq(NotificationType.ORDER_STATUS_UPDATED),
-                eq(order.getId())
+                eq(testOrder.getId())
         );
     }
 
     @Test
     void shouldGetOrdersByUserId() {
-        Order order = Order.builder()
-                .id("1")
-                .userId("user1")
-                .status(OrderStatus.PENDING)
-                .build();
-
         when(orderRepository.findByUserId("user1"))
-                .thenReturn(Flux.just(order));
+                .thenReturn(Flux.just(testOrder));
 
         StepVerifier.create(orderService.getOrdersByUserId("user1"))
-                .expectNext(order)
+                .expectNext(testOrder)
                 .verifyComplete();
     }
 
     @Test
     void shouldTrackOrder() {
-        Order order = Order.builder()
-                .id("1")
-                .userId("user1")
+        Order orderWithDelivery = Order.builder()
+                .id(testOrder.getId())
+                .userId(testOrder.getUserId())
+                .items(testOrder.getItems())
                 .status(OrderStatus.OUT_FOR_DELIVERY)
                 .deliveryInfo(DeliveryInfo.of(
                     "123 Street", 
@@ -140,24 +138,19 @@ class OrderServiceTest {
                     LocalDateTime.now().plusHours(2),
                     "Leave at door"
                 ))
+                .createdAt(testOrder.getCreatedAt())
                 .build();
 
-        when(orderRepository.findById("1")).thenReturn(Mono.just(order));
+        when(orderRepository.findById("1")).thenReturn(Mono.just(orderWithDelivery));
 
         StepVerifier.create(orderService.trackOrder("1"))
-                .expectNext(order)
+                .expectNext(orderWithDelivery)
                 .verifyComplete();
     }
 
     @Test
     void shouldFailToTrackOrderWithoutDeliveryInfo() {
-        Order order = Order.builder()
-                .id("1")
-                .userId("user1")
-                .status(OrderStatus.CONFIRMED)
-                .build();
-
-        when(orderRepository.findById("1")).thenReturn(Mono.just(order));
+        when(orderRepository.findById("1")).thenReturn(Mono.just(testOrder));
 
         StepVerifier.create(orderService.trackOrder("1"))
                 .expectError(IllegalStateException.class)
@@ -166,13 +159,15 @@ class OrderServiceTest {
 
     @Test
     void shouldFailToUpdateStatusOfDeliveredOrder() {
-        Order order = Order.builder()
-                .id("1")
-                .userId("user1")
+        Order deliveredOrder = Order.builder()
+                .id(testOrder.getId())
+                .userId(testOrder.getUserId())
+                .items(testOrder.getItems())
                 .status(OrderStatus.DELIVERED)
+                .createdAt(testOrder.getCreatedAt())
                 .build();
 
-        when(orderRepository.findById("1")).thenReturn(Mono.just(order));
+        when(orderRepository.findById("1")).thenReturn(Mono.just(deliveredOrder));
 
         StepVerifier.create(orderService.updateOrderStatus("1", OrderStatus.CANCELLED))
                 .expectError(IllegalStateException.class)

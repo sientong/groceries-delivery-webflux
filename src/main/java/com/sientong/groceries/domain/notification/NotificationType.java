@@ -5,6 +5,7 @@ public enum NotificationType {
     ORDER_CREATED,
     ORDER_STATUS_UPDATED,
     ORDER_CANCELLED,
+    ORDER_SELLER_ASSIGNED,
     DELIVERY_UPDATE,
     
     // Payment notifications

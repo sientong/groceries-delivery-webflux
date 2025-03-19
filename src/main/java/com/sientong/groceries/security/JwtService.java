@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class JwtService {
+public class JwtService implements IJwtService {
     @Value("${security.jwt.secret}")
     private String secretKey;
 
@@ -38,6 +38,7 @@ public class JwtService {
         }
     }
 
+    @Override
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -54,6 +55,7 @@ public class JwtService {
                 .compact();
     }
 
+    @Override
     public String validateTokenAndGetUsername(String token) {
         try {
             Claims claims = extractAllClaims(token);

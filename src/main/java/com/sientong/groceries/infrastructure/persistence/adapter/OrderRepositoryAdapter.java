@@ -99,4 +99,11 @@ public class OrderRepositoryAdapter implements OrderRepository {
                             return order.toDomain();
                         }));
     }
+
+    @Override
+    public Mono<Order> assignSeller(String orderId, String sellerId) {
+        return orderRepository.assignSeller(orderId, sellerId)
+                .filter(updated -> updated)
+                .flatMap(updated -> findById(orderId));
+    }
 }

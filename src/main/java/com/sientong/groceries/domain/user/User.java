@@ -2,6 +2,7 @@ package com.sientong.groceries.domain.user;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,16 +11,21 @@ import java.util.Collection;
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 public class User implements UserDetails {
-    private final String id;
-    private final String email;
-    private final String password;
-    private final String firstName;
-    private final String lastName;
-    private final UserRole role;
-    private final String address;
-    private final String phone;
+    private String id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String password;
+    private String phone;
+    private String address;
+    private UserRole role;
+    private boolean enabled;
+    private boolean accountNonExpired;
+    private boolean accountNonLocked;
+    private boolean credentialsNonExpired;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -38,21 +44,21 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return accountNonExpired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return accountNonLocked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return credentialsNonExpired;
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }

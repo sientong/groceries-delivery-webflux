@@ -21,6 +21,7 @@ import com.sientong.groceries.api.response.PaginatedResponse;
 import com.sientong.groceries.api.response.ProductResponse;
 import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.product.Product;
+import com.sientong.groceries.domain.product.ProductNotFoundException;
 import com.sientong.groceries.domain.product.ProductService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -103,7 +104,26 @@ public class ProductController {
         @PathVariable String id
     ) {
         return productService.findById(id)
+                .switchIfEmpty(Mono.error(new ProductNotFoundException(id)))
                 .map(ProductResponse::fromDomain);
+    }
+
+    @Operation(
+        summary = "Get products by category",
+        description = "Retrieve a list of products by category"
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved products"),
+        @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/category/{categoryId}")
+    public Flux<ProductResponse> getProductsByCategory(
+        @Parameter(description = "Category ID", required = true)
+        @PathVariable String categoryId
+    ) {
+        return productService.findByCategory(categoryId)
+                .map(ProductResponse::fromDomain)
+                .switchIfEmpty(Flux.empty());  
     }
 
     @Operation(
@@ -195,7 +215,7 @@ public class ProductController {
         @Parameter(description = "Stock update request", required = true)
         @Valid @RequestBody StockUpdateRequest request
     ) {
-        return productService.updateStock(id, Quantity.of(request.getQuantity()))
+        return productService.updateStock(id, Quantity.of(request.getQuantity(), request.getUnit()))
                 .map(ProductResponse::fromDomain);
     }
 }

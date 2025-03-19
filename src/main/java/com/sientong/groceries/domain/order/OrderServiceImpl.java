@@ -151,9 +151,31 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Mono<Order> assignDriver(String orderId, String driverId) {
-        return Mono.error(() -> new IllegalArgumentException("Not implemented"));
-    }   
+    public Mono<Order> assignSeller(String orderId, String sellerId) {
+        if (orderId == null || orderId.trim().isEmpty()) {
+            return Mono.error(() -> new IllegalArgumentException("Order ID cannot be null or empty"));
+        }
+        if (sellerId == null || sellerId.trim().isEmpty()) {
+            return Mono.error(() -> new IllegalArgumentException("Seller ID cannot be null or empty"));
+        }
+
+        return orderRepository.findById(orderId)
+                .switchIfEmpty(Mono.error(() -> new IllegalArgumentException("Order not found: " + orderId)))
+                .flatMap(order -> {
+                    if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.DELIVERED) {
+                        return Mono.error(() -> new IllegalStateException(
+                                "Cannot assign seller to " + order.getStatus().toString().toLowerCase() + " order"));
+                    }
+                    return orderRepository.assignSeller(orderId, sellerId)
+                            .flatMap(updatedOrder -> notificationService.createNotification(
+                                    updatedOrder.getUserId(),
+                                    "Seller Assigned",
+                                    "A seller has been assigned to your order #" + updatedOrder.getId(),
+                                    NotificationType.ORDER_SELLER_ASSIGNED,
+                                    updatedOrder.getId()
+                            ).thenReturn(updatedOrder));
+                });
+    }
 
     @Override
     public Flux<Order> getOrders() {

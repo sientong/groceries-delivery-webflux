@@ -7,24 +7,32 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.sientong.groceries.domain.common.Money;
 import com.sientong.groceries.domain.common.Quantity;
 
 class ProductTest {
+    private Category testCategory;
+    private LocalDateTime testTime;
+
+    @BeforeEach
+    void setUp() {
+        testCategory = Category.of("fruits", "Fruits");
+        testTime = LocalDateTime.of(2025, 3, 14, 9, 35);
+    }
+
     @Test
     void shouldCreateValidProduct() {
-        LocalDateTime now = LocalDateTime.of(2025, 3, 14, 9, 35);
-        Category category = Category.of("fruits", "Fruits");
         Product product = Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .description("Fresh organic apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(100, "kg"))
-                .createdAt(now)
+                .createdAt(testTime)
                 .build();
 
         assertNotNull(product);
@@ -32,20 +40,19 @@ class ProductTest {
         assertEquals("Organic Apples", product.getName());
         assertEquals("Fresh organic apples", product.getDescription());
         assertEquals(Money.of(BigDecimal.valueOf(5.99)), product.getPrice());
-        assertEquals(category, product.getCategory());
+        assertEquals(testCategory, product.getCategory());
         assertEquals(100, product.getQuantity().getValue());
         assertEquals("kg", product.getQuantity().getUnit());
-        assertEquals(now, product.getCreatedAt());
+        assertEquals(testTime, product.getCreatedAt());
     }
 
     @Test
     void shouldNotCreateProductWithNullName() {
-        Category category = Category.of("fruits", "Fruits");
-        assertThrows(NullPointerException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () -> 
             Product.builder()
                 .id("1")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(100))
                 .build()
         );
@@ -53,12 +60,11 @@ class ProductTest {
 
     @Test
     void shouldNotCreateProductWithNullPrice() {
-        Category category = Category.of("fruits", "Fruits");
-        assertThrows(NullPointerException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () -> 
             Product.builder()
                 .id("1")
                 .name("Organic Apples")
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(100))
                 .build()
         );
@@ -66,13 +72,12 @@ class ProductTest {
 
     @Test
     void shouldNotCreateProductWithNegativePrice() {
-        Category category = Category.of("fruits", "Fruits");
         assertThrows(IllegalArgumentException.class, () -> 
             Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(-5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(100))
                 .build()
         );
@@ -80,7 +85,7 @@ class ProductTest {
 
     @Test
     void shouldNotCreateProductWithNullCategory() {
-        assertThrows(NullPointerException.class, () -> 
+        assertThrows(IllegalArgumentException.class, () -> 
             Product.builder()
                 .id("1")
                 .name("Organic Apples")
@@ -92,13 +97,12 @@ class ProductTest {
 
     @Test
     void shouldNotCreateProductWithNegativeQuantity() {
-        Category category = Category.of("fruits", "Fruits");
         assertThrows(IllegalArgumentException.class, () ->
             Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(-1))
                 .build()
         );
@@ -106,13 +110,12 @@ class ProductTest {
 
     @Test
     void shouldUpdateStockCorrectly() {
-        Category category = Category.of("fruits", "Fruits");
         Product product = Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
-                .quantity(Quantity.of(100, "kg"))
+                .category(testCategory)
+                .quantity(Quantity.of(150, "kg"))
                 .build();
 
         product.updateStock(Quantity.of(50, "kg"));
@@ -121,29 +124,72 @@ class ProductTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenUpdatingStockWithDifferentUnit() {
-        Category category = Category.of("fruits", "Fruits");
+    void shouldAddStockCorrectly() {
         Product product = Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
+                .quantity(Quantity.of(100, "kg"))
+                .build();
+
+        product.addStock(Quantity.of(50, "kg"));
+        assertEquals(150, product.getQuantity().getValue());
+        assertEquals("kg", product.getQuantity().getUnit());
+    }
+
+    @Test
+    void shouldRemoveStockCorrectly() {
+        Product product = Product.builder()
+                .id("1")
+                .name("Organic Apples")
+                .price(Money.of(BigDecimal.valueOf(5.99)))
+                .category(testCategory)
+                .quantity(Quantity.of(100, "kg"))
+                .build();
+
+        product.removeStock(Quantity.of(50, "kg"));
+        assertEquals(50, product.getQuantity().getValue());
+        assertEquals("kg", product.getQuantity().getUnit());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRemovingTooMuchStock() {
+        Product product = Product.builder()
+                .id("1")
+                .name("Organic Apples")
+                .price(Money.of(BigDecimal.valueOf(5.99)))
+                .category(testCategory)
                 .quantity(Quantity.of(100, "kg"))
                 .build();
 
         assertThrows(IllegalArgumentException.class, () ->
-            product.updateStock(Quantity.of(50, "piece"))
+            product.removeStock(Quantity.of(150, "kg"))
+        );
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingStockWithNegativeValue() {
+        Product product = Product.builder()
+                .id("1")
+                .name("Organic Apples")
+                .price(Money.of(BigDecimal.valueOf(5.99)))
+                .category(testCategory)
+                .quantity(Quantity.of(100, "kg"))
+                .build();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            product.updateStock(Quantity.of(-1, "kg"))
         );
     }
 
     @Test
     void shouldThrowExceptionWhenUpdatingStockBelowZero() {
-        Category category = Category.of("fruits", "Fruits");
         Product product = Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(100, "kg"))
                 .build();
 
@@ -154,12 +200,11 @@ class ProductTest {
 
     @Test
     void shouldFormatMoneyWithCurrencyCorrectly() {
-        Category category = Category.of("fruits", "Fruits");
         Product product = Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(100, "kg"))
                 .build();
 
@@ -168,12 +213,11 @@ class ProductTest {
 
     @Test
     void shouldFormatQuantityWithUnitCorrectly() {
-        Category category = Category.of("fruits", "Fruits");
         Product product = Product.builder()
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(1, "kg"))
                 .build();
 
@@ -183,7 +227,7 @@ class ProductTest {
                 .id("1")
                 .name("Organic Apples")
                 .price(Money.of(BigDecimal.valueOf(5.99)))
-                .category(category)
+                .category(testCategory)
                 .quantity(Quantity.of(2, "piece"))
                 .build();
 

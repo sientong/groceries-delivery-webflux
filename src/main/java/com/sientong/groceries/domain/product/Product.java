@@ -48,11 +48,30 @@ public class Product {
             throw new IllegalArgumentException("Stock update quantity cannot be null");
         }
         
-        int newQuantity = this.quantity.getValue() + delta.getValue();
+        this.quantity = Quantity.of(delta.getValue(), delta.getUnit());
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void addStock(Quantity amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Stock amount cannot be null");
+        }
+        
+        this.quantity = Quantity.of(this.quantity.getValue() + amount.getValue(), amount.getUnit());
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void removeStock(Quantity amount) {
+        if (amount == null) {
+            throw new IllegalArgumentException("Stock amount cannot be null");
+        }
+        
+        int newQuantity = this.quantity.getValue() - amount.getValue();
         if (newQuantity < 0) {
             throw new IllegalArgumentException("Cannot reduce stock below zero");
         }
-        this.quantity = Quantity.of(newQuantity);
+        
+        this.quantity = Quantity.of(newQuantity, amount.getUnit());
         this.updatedAt = LocalDateTime.now();
     }
 }

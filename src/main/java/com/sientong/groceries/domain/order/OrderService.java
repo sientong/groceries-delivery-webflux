@@ -2,6 +2,7 @@ package com.sientong.groceries.domain.order;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 public interface OrderService {
     Mono<Order> createOrder(Order order);
     
@@ -19,7 +20,7 @@ public interface OrderService {
     
     Mono<Order> cancelOrder(String orderId);
     
-    Mono<Order> assignDriver(String orderId, String driverId);
+    Mono<Order> assignSeller(String orderId, String sellerId);
     
     Flux<Order> getOrders();
 }

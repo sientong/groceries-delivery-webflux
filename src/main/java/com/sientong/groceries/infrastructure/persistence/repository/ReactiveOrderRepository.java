@@ -28,4 +28,8 @@ public interface ReactiveOrderRepository extends ReactiveCrudRepository<OrderEnt
 
     @Query("SELECT * FROM orders WHERE user_id = :userId ORDER BY created_at DESC LIMIT :limit")
     Flux<OrderEntity> findRecentOrdersByUserId(String userId, int limit);
+    
+    @Modifying
+    @Query("UPDATE orders SET seller_id = :sellerId, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
+    Mono<Boolean> assignSeller(String id, String sellerId);
 }

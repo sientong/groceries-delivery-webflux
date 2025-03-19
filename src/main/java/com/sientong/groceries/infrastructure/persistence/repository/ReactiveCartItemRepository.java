@@ -7,9 +7,13 @@ import org.springframework.stereotype.Repository;
 import com.sientong.groceries.infrastructure.persistence.entity.CartItemEntity;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
 public interface ReactiveCartItemRepository extends ReactiveCrudRepository<CartItemEntity, String> {
     @Query("SELECT ci.id, ci.cart_id, ci.product_id, ci.name, ci.description, ci.price, ci.currency, ci.quantity, ci.unit FROM cart_items ci WHERE ci.cart_id = :cartId")
     Flux<CartItemEntity> findByCartId(String cartId);
+
+    @Query("DELETE FROM cart_items WHERE cart_id = :cartId")
+    Mono<Void> deleteByCartId(String cartId);
 }

@@ -55,6 +55,7 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                     .pathMatchers(PUBLIC_PATHS).permitAll()
                     .pathMatchers(HttpMethod.GET, GET_ONLY_PUBLIC_PATHS).permitAll()
+                    .pathMatchers("/api/v1/cart/**").hasRole("CUSTOMER")
                     .anyExchange().authenticated()
                 )
                 .addFilterAt(new JwtAuthenticationFilter(jwtService, userDetailsService), 

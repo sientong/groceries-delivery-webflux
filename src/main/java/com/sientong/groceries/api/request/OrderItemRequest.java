@@ -1,8 +1,5 @@
 package com.sientong.groceries.api.request;
 
-import com.sientong.groceries.domain.common.Quantity;
-import com.sientong.groceries.domain.order.OrderItem;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -14,8 +11,4 @@ public class OrderItemRequest {
 
     @Positive(message = "Quantity must be positive")
     private int quantity;
-
-    public OrderItem toDomain() {
-        return OrderItem.of(productId, null, null, Quantity.of(quantity));
-    }
 }

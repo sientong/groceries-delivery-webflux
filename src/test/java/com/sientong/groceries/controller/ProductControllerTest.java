@@ -11,7 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -19,6 +22,8 @@ import com.sientong.groceries.api.controller.ProductController;
 import com.sientong.groceries.api.request.ProductRequest;
 import com.sientong.groceries.api.request.StockUpdateRequest;
 import com.sientong.groceries.api.response.ProductResponse;
+import com.sientong.groceries.config.TestConfig;
+import com.sientong.groceries.config.TestSecurityConfig;
 import com.sientong.groceries.domain.common.Money;
 import com.sientong.groceries.domain.common.Quantity;
 import com.sientong.groceries.domain.product.Category;
@@ -30,6 +35,8 @@ import reactor.core.publisher.Mono;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(ProductController.class)
+@Import({TestConfig.class, TestSecurityConfig.class})
+@ActiveProfiles("test")
 class ProductControllerTest {
 
     @MockBean
@@ -99,6 +106,7 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "SELLER")
     void shouldUpdateStock() {
         Product product = createTestProduct();
         product = Product.builder()
@@ -114,6 +122,7 @@ class ProductControllerTest {
 
         StockUpdateRequest request = new StockUpdateRequest();
         request.setQuantity(150);
+        request.setUnit("kg");
 
         when(productService.updateStock("1", Quantity.of(150, "kg"))).thenReturn(Mono.just(product));
 
@@ -127,6 +136,7 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "SELLER")
     void shouldCreateProduct() {
         Product product = createTestProduct();
         ProductRequest request = new ProductRequest();
@@ -160,9 +170,11 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void shouldReturn400WhenInvalidStockUpdate() {
         StockUpdateRequest request = new StockUpdateRequest();
         request.setQuantity(-1);
+        request.setUnit("kg");
 
         webTestClient.patch()
                 .uri("/api/v1/products/1/stock")

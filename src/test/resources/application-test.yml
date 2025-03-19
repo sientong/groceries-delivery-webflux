@@ -1,0 +1,28 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/groceries_test
+    username: postgres
+    password: postgres
+  flyway:
+    url: jdbc:postgresql://localhost:5432/groceries_test
+    user: postgres
+    password: postgres
+    baseline-on-migrate: true
+  redis:
+    host: localhost
+    port: 6379
+
+security:
+  jwt:
+    secret: test-secret-key-for-ci-environment
+    expiration: 86400000  # 24 hours in milliseconds
+
+logging:
+  level:
+    root: INFO
+    com.sientong.groceries: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    reactor.netty.http.client: DEBUG
+
+debug: true
